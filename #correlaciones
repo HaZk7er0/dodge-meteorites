@@ -1,0 +1,60 @@
+#correlaciones
+mtcars <- read.table("C:/Users/Familia/Desktop/R/Clase 5/mtcars.txt",header = TRUE, sep = "", na.strings = "NA", dec = ".", strip.white = TRUE, row.names = "NOMBRE")
+
+lin<-lm(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb,data=mtcars)
+summary(lin)#ciertas desviaciones estandar son altas
+
+cor(mtcars[,c(-8,-9)])#Se puede ver ciertas correlaciones altas
+
+#install.packages("car")
+library(car)
+car::vif(lin)#calculo de los VIF para cada variable
+#VIF -> Mayor que 10 ya es preocupante
+
+################################################################
+#3a solución: Hacer regresión PCR (o de manera alternativa PLS)#
+################################################################
+
+library(pls)
+
+PCRmtcars <- pcr(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb, scale = TRUE,ncomp = 5, data = mtcars, validation = "LOO")
+summary(PCRmtcars)#El criterio RMSE sugiere un solo componente
+
+plot(RMSEP(PCRmtcars), legendpos = "topright")#Grafico del "CV"
+
+explvar(PCRmtcars)#variabilidad explicada por los regresores
+
+#Las salidas nos sugiere ocupar un solo componente, o 3 componentes (es verdad que con 3 tenemos "CV" más bajo que con un solo componente, pero son cercanos). Sin embargo podemos trabajar con 3 componentes igual que explica más de 90% de variabilidad por los "X". Las dos soluciones son buenas
+
+#Quizás dado que el objetivo es explicar "mpg" y que agregar un segundo y tercer componentes no aporta mucho, quedamos nos con un solo componente
+
+#lo de arriba es de diagnostico, con cuantos componentes me quedare, ahora se realiza la estimacion. ncomp numero de componentes que me quedo
+PCRmtcars2 <- pcr(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb, scale = TRUE,ncomp = 1, data = mtcars, validation = "LOO")
+summary(PCRmtcars2)#PCR con un solo componente
+
+plot(PCRmtcars2, ncomp = 1, asp = 1, line = TRUE)#Cuidado que las predicciones siguen las observaciones, pero cuidado que las predicciones fueron calculadas con el mismo conjunto de datos que sirvieron a estimar el modelo
+
+#####################################################################
+#Solución cercana al PCR, la regresión PLS (Partially Least Squares)#
+#####################################################################
+
+aceite <- plsr(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb, scale = TRUE,ncomp = 5, data = mtcars, validation = "LOO")
+summary(aceite)#Vamos con un solo componente también
+
+
+####################################
+#2a solución: Hacer regresión ridge#
+####################################
+
+library(MASS)
+lm.ridge(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb,data=mtcars, lambda = 0)#NO ridge regression
+h<-seq(11, 12, by=0.01)
+rid<-lm.ridge(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb,data=mtcars, lambda = h)#ridge regression
+rid$GCV  #parecido al CV, el minimo indica el punto entre l variable mas baja y el sesgo mas bajo. Se introduce sesgo desde el principio, pero beneficioso para bajar la varianza. Hasta que luego del punto mas bajo ya empieza a dañar el modelo
+rid$coef[,48]
+#Para ubicar exactamente el punto optimal y aplicarlo 
+
+plot(h,rid$GCV)
+
+rid<-lm.ridge(mpg~cyl+disp+hp+drat+wt+qsec+gear+carb,data=mtcars, lambda = 11.47)
+rid#estimación con el parametro "ridge" optimal

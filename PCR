@@ -1,0 +1,26 @@
+PCR
+
+VALIDATION: RMSEP
+Cross-validated using 32 leave-one-out segments.      
+       (Intercept)  1 comps  2 comps  3 comps  4 comps  5 comps
+CV           6.123    2.690    2.721    2.655    2.727    2.775  -> con cuantos campos quedarnos, entre mas chico mejor, en este caso es el 3, debido a que es el mas bajo.
+adjCV        6.123    2.686    2.717    2.650    2.721    2.767
+
+TRAINING: % variance explained
+     1 comps  2 comps  3 comps  4 comps  5 comps
+X      60.07    86.07    92.09    95.41    97.59   -> cuando seleccinamos los componentes, para seleccionar las variables, en este caso si seleccionamos el primer componentes nos quedamos con el 60% de  la informacion, con 2 el 80% - con respecto al total
+mpg    82.37    82.60    84.55    84.55    84.89  -> miramos con respecto a la componente que queremos predecir, en este caso con la prmera componente ya explicamos el 82,37  con respecto a mpg
+
+para la comprension de mpg con una componente esta mas que bien. el 40% total de la info, no me agrega más valor.
+
+estos dos test son complementarios. en CV los campos mas bajos son el 1 y el 3 y con el segundo nos podriamos quedar solo con el 1 o con el 3.
+
+
+
+
+
+> explvar(PCRmtcars)#variabilidad explicada por los regresores
+   Comp 1    Comp 2    Comp 3    Comp 4    Comp 5 
+60.065248 26.002249  6.026277  3.312762  2.184904 
+
+como estan explicados los valores

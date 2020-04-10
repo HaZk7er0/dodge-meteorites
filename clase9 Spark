@@ -1,0 +1,26 @@
+clase9 Spark
+
+victor.guzman@mail.udp.cl
+22.
+
+
+
+%sql  //Consulta SQL en spark
+
+
+
+Clase 10 Cluster
+
+-> Perfiles de personas, productos, etc. 
+
+Distancias
+-> Distancia Euclidiana
+-> Distancia Manhattan
+
+Normalización de variable
+->Se pueden dar casos donde entre mas mejor o a la inversa
+
+
+R:
+Lapply 
+->ocupo una función creada, se le asignan los datos y luego el nombre de la función a ocupar

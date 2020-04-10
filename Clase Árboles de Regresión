@@ -1,0 +1,6 @@
+Clase Árboles de Regresión
+
+Validación cruzada
+-> Se separan los datos en :Entrenamiento, validación y test. Se va sacando partes de cada uno de los grupos y se va validando la información
+
+->Los rboles si me comprenden variables categoricas, cuando aparecen, dejarlas en factor

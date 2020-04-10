@@ -1,0 +1,109 @@
+Call:
+lm(formula = mpg ~ cyl + wt + qsec, data = autos.training)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.4122 -1.6860 -0.3768  1.2086  5.6457 
+# cuando un error tiene una maximo que se escapa mucho de 1q midian 3q, puede significar que es un outlier, igualmente con el Minimo
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)                   Pr(>|t|)  es mas chico que 5% rechazamos H0, si es mayor no lo rechazamos
+B0 -> (Intercept)  30.0895     9.8519   3.054 0.005625 **   se rechaza H0, por lo tanto es significativa la variable
+B1 -> cyl          -0.7611     0.7614  -1.000 0.327863    
+B2 -> wt           -4.0888     1.0778  -3.794 0.000938 *** se rechaza H0, por lo tanto es significativa la variable
+B3 -> qsec          0.4471     0.4602   0.972 0.341376    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1     significancia, en codigo *** alto, ** medio, * menor, . muy poco, nada
+
+Residual standard error: 2.708 on 23 degrees of freedom -> mientras mejor se expliquen los datos, sera alta esta variable
+Multiple R-squared:  0.8355 -> se agregan variables, aunque no tengan nada que ver con el modelo, subira,	Adjusted R-squared:  0.8141 -> cerca a uno, el modelo es bueno, cerca a 0 el modelo es malo 
+F-statistic: 38.95 on 3 and 23 DF,  p-value: 3.515e-09   -> F-statistic: test de fisher si el modelo es bueno, sera alto este numero, de lo contrarion sera bajo.      p-value: 3.515e-09   se estamos bajo al 5% es valido el modelo
+
+
+
+
+#intervalos de confianza de los parametros // si esta entre 0, se puede descartar, si cero esta dentro del conjunto, la variable no es significativa
+> confint(fit, 'cyl', level=0.95)
+        2.5 %    97.5 %
+cyl -2.336087 0.8138594                 al limite, se pudo o no descartar
+> confint(fit, 'wt', level=0.95)
+       2.5 %    97.5 %
+wt -6.318402 -1.859191
+> confint(fit, 'qsec', level=0.95)
+          2.5 %   97.5 %
+qsec -0.5048448 1.399003				se debio descartar, porque el cero es muy probable de que salga
+
+
+
+
+
+##########################################################
+#Construccion de modelo para explicar el consumo de autos#
+##########################################################
+
+#Lectura de Datos:
+mtcars <- read.table("C:/Users/Familia/Desktop/R/Clase 5/mtcars.txt",header = TRUE, sep = "", na.strings = "NA", dec = ".", strip.white = TRUE, row.names = "NOMBRE")
+
+n<-nrow(mtcars)#numero de observaciones
+x <- seq(1,n,1)
+z<-sample(x, 5, replace = FALSE, prob = NULL)#muestremos sin reemplazo 
+mz<--z
+autos.training<-mtcars[mz,]#muestra para construir el modelo
+autos.test<-mtcars[z,]#muestra para probar el modelo
+
+#Es bueno hacer graficos, tests de correlación, box-plots para detectar outliers, curtosis, skewness y tests para 
+#tener una idea de la distribución de los datos, calcular correlaciones entre regresores para detectar 
+#problemas de colinealidad,....etc... eso fue visto anteriormente
+
+fit<-lm(mpg~ cyl+wt+qsec,data=autos.training)#estimación del modelo. La estimación definitiva viene luego de la identificación del modelo. Nos vamos a ver luego las herramientas de la identificación
+summary(fit)
+
+confint(fit, 'cyl', level=0.95)#intervalos de confianza de los parametros
+confint(fit, 'wt', level=0.95)
+confint(fit, 'qsec', level=0.95)
+
+a.test<-predict(fit, newdata=data.frame(autos.test), interval="prediction",level = 0.95) #prediccion sobre el individo, #dos incertidumbres
+#Esta linea se puede interpretar de dos maneras:
+#1-Si tenemos nuevas autos que son las de las muestras test, entonces queremos hacer predicción de la variables "mpg" por esos nuevos individuos. En este caso tenemos la incertitumbre de la estimación y del error relacionado a cada individuo.
+#2-Si queremos probar el modelo (no son realmente nuevos individuos, pero solo fueron descartados para probar el modelo), se usa la predicción para calcular algun criterio de error de predicción, como el MSE:
+
+MSE<-mean((a.test[,1]-autos.test[,1])^2)#a comparar con un modelo competitor
+AIC(fit)#para comparar modelos competidores. Pueden seleccionar distintos modelos 
+BIC(fit)#AIC a medida que agregamos más datos es más eficiente.
+
+#Ahora si queremos comprender la relación entre el consumo de las autos y las 
+#variables del modelo, tenemos solo que considerar la incertitumbre de la estimacion
+fit.2<-lm(mpg~ cyl+wt,data=mtcars) 
+
+p.wt<-seq(1.5,5.5,0.1)#generamos datos ficticios que toman valores de interés por las variables explicativas
+np<-length(p.wt) # obsevaciones ficticias, en distintos puntos para predecir la linea
+p.cyl<-c(4,6,8)
+data.4<-matrix(0,np,2)
+data.4[,1]<-p.cyl[1]
+data.4[,2]<-p.wt
+data.6<-matrix(0,np,2)
+data.6[,1]<-p.cyl[2]
+data.6[,2]<-p.wt
+data.8<-matrix(0,np,2)
+data.8[,1]<-p.cyl[3]
+data.8[,2]<-p.wt
+data.r<-rbind(data.4,data.6,data.8)
+colnames(data.r) <- c("cyl","wt")
+a.relacion<-predict(fit.2, newdata=data.frame(data.r), interval="confidence",level = 0.95) #intervalo de confianza entre la relacion de las variables, una fuente de incertidumbre
+a.relacion#nos da el consumo de autos que tienen ciertos cylindros y diversos pesos (no estamos fijando sobre individuos en especifico...)
+
+plot(data.r[1:41,2],a.relacion[42:82,1],type = "l",xlab = "peso del auto", ylab = "consumo mpg", main = "en negro 6 cyl, en rojo 8 cyl, en azul 4 cyl",
+     xlim=c(1.5, 6),ylim=c(10, 30))
+lines(data.r[1:41,2], a.relacion[42:82,2], col = "black",lty="dotted")
+lines(data.r[1:41,2], a.relacion[42:82,3], col = "black",lty="dotted")
+lines(data.r[1:41,2], a.relacion[1:41,1], col = "blue")
+lines(data.r[1:41,2], a.relacion[1:41,2], col = "blue",lty="dotted")
+lines(data.r[1:41,2], a.relacion[1:41,3], col = "blue",lty="dotted")
+lines(data.r[1:41,2], a.relacion[83:123,1], col = "red")
+lines(data.r[1:41,2], a.relacion[83:123,2], col = "red",lty="dotted")
+lines(data.r[1:41,2], a.relacion[83:123,3], col = "red",lty="dotted")
+
+a.test<-predict(fit.2, newdata=data.frame(autos.test), interval="prediction",level = 0.95) #tiene mas incertidumbre, es del individuo. Dos incertidumbres, del individuo y de la relacion
+
+b.test<-predict(fit.2, newdata=data.frame(autos.test), interval="confidence",level = 0.95) #menos incertidumbre, estamos haciendo prediccion por cualquier auto con los componentes de las variables.(NO SE TRATATA DEL INDIVIDU, SE TRATA DE CUALQUIER AUTO CON LAS MISMAS CARACTERISTICAS QUE LOS QUE SALEN DE ESE AUTO)
+
+

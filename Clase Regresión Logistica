@@ -1,0 +1,40 @@
+Clase Regresión Logistica
+
+Siempre tendremos un 1 o un 0 como respuesta
+
+Detras de un modelo lpgístico viene de un Binomial
+
+Verosímilitud
+-> Viene del modelo binomial y nos indica la cantidad de prediciones que tendremos
+
+Selección de variables
+
+Backward 
+	-> se comienza por considerar el modelo con todas las variables disponibles
+	y se van eliminando del modelo de una en una, según su capacidad explicativa. Es
+	decir, la primera variable eliminada es aquella que presenta un menor coeficiente de
+	correlación parcial con la variable dependiente.
+Forward 
+	-> se comienza por considerar que el modelo no contiene ninguna variable
+	explicativa y se añade como la primera de ellas a la que presente un mayor coeficiente
+	de correlación parcial con la variable dependiente.
+Stepwise
+	-> es uno de los métodos más aplicados y consiste en una combinación de
+	los dos anteriores. En el primer paso se procede como en el método Forward pero a
+	diferencia de éste en el que cuando la variable entra al modelo ya no vuelve a salir
+	en el procedimiento.
+
+*No deben existir variables dependientes en el modelo
+*Porcentaje de corte optimo esta entre la intersección del porcentaje de predicción y el de recall
+
+
+Matriz de confusión
+-> TP: Verdaderos positivos.
+-> FP: Falsos positivos (Error tipo I).
+-> FN: Falsos negativos (Error tipo II)
+-> TN: Verdaderos Negativo
+
+Pasos Ejmplo CLientes Fugados de un Banco
+-> 
+
+Modelos Rov deberia ser un 0.6  - 0.7

@@ -1,0 +1,31 @@
+   
+Clase13
+
+Diferencia entre árbol de decisión y random forest
+
+
+
+
+Método de ensamble
+
+Buscan un equilibrio entre la varianza y el Bias, para el Random Forest 
+Bias: Cuanto se alejan del promedio de la región
+
+Boosting -> Trabaja de manera secuencial, los distintos arboles aprenden del método anterior
+Bagging -> Trabaja de manera paralela entre varior arboles
+
+Random Forest
+Ventajas:
+• Indica las variables con mas peso del modelo 
+Desventaja: 
+• Es mas eficaz en clasificar que en regresión
+Hiper - parámetros
+ Parámetros que dependen del investigador. 
+
+
+Documentación Random Forest en R
+https://www.rdocumentation.org/packages/randomForest/versions/4.6-14/topics/randomForest
+
+Datos importantes
+
+siempre ver el precision  y accuracy, valores que ven la calidad de los modelos  

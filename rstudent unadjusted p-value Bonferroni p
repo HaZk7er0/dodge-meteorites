@@ -1,0 +1,28 @@
+   rstudent unadjusted p-value Bonferroni p
+18 2.537801           0.016788       0.5372
+
+si el r student es mayor a 2 absoluto es outliers, el p value es si hay o no outliers. el úñtimo es la correccion de mi confianza
+
+
+$stat
+[1] 328.0228
+
+
+$P.square
+[1] 0.7086954
+
+> aov(fit)#Analisis of variance para leer el SSE
+Call:
+   aov(formula = fit)
+
+Terms:
+                      wt Residuals
+Sum of Squares  847.7252  278.3219
+Deg. of Freedom        1        30
+
+Residual standard error: 3.045882
+Estimated effects may be unbalanced
+
+
+stat puede ir bajando a 278 sacando los individuos outlier, si no baja es que no sirve de nada eliminarlos
+

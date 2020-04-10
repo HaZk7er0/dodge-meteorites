@@ -1,0 +1,40 @@
+clase 8
+
+heterocedasticidad:
+	En estadística se dice que un modelo de regresión lineal presenta heterocedasticidad cuando la varianza de los errores no es constante en todas las observaciones realizadas. Esto implica el incumplimiento de una de las hipótesis básicas sobre las que se asienta el modelo de regresión lineal.
+
+Autocorrelacion de los errores:
+	Cuando dos datos no son independientes
+
+Correlación y heterocedasticidad:
+	Estimación "HAC"
+
+Estrategias para mejorar la estimación
+	1) Utilizar la información en los errores para mejorar la estimación
+	2) No utilizar la información en los errores, pero corregir la varianza
+
+
+Para la atocorrelación se puede ocupar el test de Durbin-watson
+	H0 No existe autocorrelación
+	H1 Existe autocorrelacion
+
+
+
+
+
+La idea general es agregar información al modelo para que tengamos una mejor estimación, se agrega información sobre los errores para mejorar esto	
+
+
+Prueba de Breusch-pagan
+H0 Homoscedasticidad
+H1 Heterocedasticidad
+
+Ej: lA gente de valparaizo tiene la misma variabilidad que la de viña 		Homoscedasticidad
+Ej: lA gente de valparaizo tiene diferente variabilidad que la de viña 		Heterocedasticidad
+
+
+
+
+
+Regresión Falsa
+

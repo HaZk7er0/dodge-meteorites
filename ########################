@@ -1,0 +1,217 @@
+########################
+# librerias a utilizar #
+########################
+# install.packages("ggplot2")
+# install.packages("sqldf")
+# install.packages("dplyr")
+# install.packages("randomForest")
+# install.packages("ROCR")
+# install.packages("e1071")
+library(ggplot2)
+library(sqldf)
+library(dplyr)
+library(randomForest)
+library(ROCR)
+library(e1071)
+# lectura de la base de datos
+setwd("C:/Users/Familia/Desktop/R/CLase 13")
+df<-read.csv("adult.txt",header=T,sep=",")
+# muestra los primeros 6 elementos del dataframe
+head(df)
+# encuentra los factores diferentes
+levels(factor(df$y))
+# encuentra los unicos
+unique(df["y"])
+# codificamos la variable respuesta como binaria
+df[,"y"]<-ifelse(df["y"]== ' >50K.' | df["y"]==" >50K",1,0)
+df%>%
+  mutate(y=case_when(y==' >50K'~1,
+                     y==' >50K.'~1,
+                     TRUE~0))
+# realizamos un resumen del dataframe
+summary(df)
+df$education.num<- as.factor(df$education.num)
+barplot(table(df$education))
+df$flag_gain<-ifelse(df$capital.gain>0,1,0)
+df$flag_loss<-ifelse(df$capital.loss>0,1,0)
+
+#df%>%
+#    group_by(flag_loss)%>%
+#    summarise(counts=n())
+
+
+# histogramas
+# fnlwgt
+hist_fnlwgt<-ggplot(df, aes(x=fnlwgt)) + 
+  geom_histogram(color="black", fill="lightblue")
+hist_fnlwgt
+# age
+hist_age<-ggplot(df, aes(x=age)) + 
+  geom_histogram(color="black", fill="lightgreen")
+hist_age
+# hours.per.week
+hist_hours<-ggplot(df, aes(x=hours.per.week)) + 
+  geom_histogram(color="black", fill="lightgreen")
+hist_hours
+
+# capital.loss
+hist_cap_loss<-ggplot(df, aes(x=capital.loss)) + 
+  geom_histogram(color="black", fill="lightgreen")
+hist_cap_loss
+
+# capital.gain
+hist_cap_gain<-ggplot(df, aes(x=capital.gain)) + 
+  geom_histogram(color="black", fill="lightgreen")
+hist_cap_gain
+
+
+# barplots vertical
+# sex
+#trato de los datos en formato r
+sex_plot<-df %>%
+  group_by(sex) %>%                    
+  summarize(counts = n()) %>%
+  arrange(-counts) %>%                  
+  mutate(sex = factor(sex, sex)) %>%   
+  ggplot(aes(x=sex, y=counts)) +       
+  geom_bar(stat="identity",color="black",fill="lightgreen")      
+
+sex_plot+coord_flip()
+
+# obtenemos los paises más repetidos mediante sql
+df_order<-sqldf("select [native.country] as country,count(*) as count from df
+      group by [native.country]
+      order by count desc")
+# obtenemos los paises más repetidos mediante dplyr
+df%>%
+  group_by(native.country)%>%
+  summarise(counts=n())%>%
+  arrange(-counts)
+
+df<-df %>% 
+  mutate(native.country = case_when(
+    native.country == ' ?' ~ " Unknown",
+    native.country == " United-States" ~ " United-States",
+    native.country == " Mexico" ~ " Mexico",
+    native.country == " Philippines" ~ " Philippines",
+    native.country == " Germany" ~ " Germany",
+    TRUE ~ "Others")
+  )
+# Transformamos a factor la variable modificada
+df$native.country <- as.factor(df$native.country)
+# verificamos los niveles que quedaron en la variable modificada
+levels(df$native.country)
+# Graficamos la variable native.country (modificada)
+df %>%
+  group_by(native.country) %>%                    
+  summarize(counts = n()) %>%
+  arrange(-counts) %>%                            
+  mutate(native.country = factor(native.country, native.country)) %>%   
+  ggplot(aes(x=native.country, y=counts)) +       
+  geom_bar(stat="identity",color="black",fill="lightblue")      
+
+# Graficamos la variable workclass
+df %>%
+  group_by(workclass) %>%                    
+  summarize(counts = n()) %>%
+  arrange(-counts) %>%                  
+  mutate(workclass=case_when(workclass==" ?"~" Unknown",
+                             TRUE ~ as.character(workclass)))%>%
+  mutate(workclass = factor(workclass, workclass)) %>%   
+  ggplot(aes(x=workclass, y=counts)) +       
+  geom_bar(stat="identity",color="black",fill="lightgreen")      
+
+# verificamos los niveles de la variable education
+levels(df$education)
+# gráficamos los niveles de la variable education.num
+df %>%
+  group_by(education.num) %>%                    
+  summarize(counts = n()) %>%
+  arrange(-counts) %>%                  
+  mutate(education.num = factor(education.num, education.num)) %>%   
+  ggplot(aes(x=education.num, y=counts)) +       
+  geom_bar(stat="identity",color="black",fill="lightgreen")      
+
+# verificamos cuales son las ocupaciones más frecuentes 
+df %>%
+  group_by(occupation) %>%
+  summarize(counts=n())%>%
+  arrange(-counts)
+
+# gráficamos la variable relationship
+df %>%
+  group_by(relationship) %>%                    
+  summarize(counts = n()) %>%
+  arrange(-counts) %>%                  
+  mutate(relationship = factor(relationship, relationship)) %>%   
+  ggplot(aes(x=relationship, y=counts)) +       
+  geom_bar(stat="identity",color="black",fill="lightgreen")      
+
+# gráficamos la raza del individuo
+df %>%
+  group_by(race) %>%                    
+  summarize(counts = n()) %>%
+  arrange(-counts) %>%                  
+  mutate(race = factor(race, race)) %>%   
+  ggplot(aes(x=race, y=counts)) +       
+  geom_bar(stat="identity",color="black",fill="lightgreen")      
+
+# Separamos la data en train y test
+dim_df<-dim(df)[1]
+#train_im<- df[1:dim_df,c("age","workclass","fnlwgt","education.num","marital.status",
+#                         "race","sex","capital.gain","capital.loss","hours.per.week","native.country","y")]
+train_im<- df[1:dim_df,c("age","workclass","fnlwgt","education.num","marital.status",
+                         "race","sex","flag_gain","flag_loss","hours.per.week","native.country","y")]
+
+muestra <- sample(nrow(train_im),nrow(train_im)*.25)
+train <- train_im[-muestra,]
+test  <- train_im[muestra,]
+
+# entrenamos el modelo
+#modelo <- randomForest(y~., data=train)
+modelo <- randomForest(y~., data=train, ntree=50,maxnodes = 10, importante=True)
+# graficamos el error en base a los arboles
+plot(modelo)
+#despues del 30 mas o menos el grafico no presenta mayor cambios con el error
+
+# Importancia de las variables
+modelo$importance
+# Hacer predicciones
+predicciones <- predict(modelo, newdata=test,type="response")
+# area bajo la curva
+roc_pred = prediction(predicciones, test$y)
+roc_perf = performance(roc_pred, measure = "tpr", x.measure = "fpr")
+plot(roc_perf, colorize = TRUE, text.adj = c(-0.2,1.7),
+     print.cutoffs.at = seq(0,1,0.1))
+auc = performance(roc_pred, measure = "auc")
+auc = auc@y.values[[1]]
+auc
+# Matriz de confusión en base al corte de 0.5
+library(caret)
+pred_threshold = ifelse(predicciones>=0.5,1,0)
+confusionMatrix(as.factor(pred_threshold),as.factor(test$y))
+
+## mtry definimos el numero de cada división
+oob.err = NULL
+test.err = NULL
+for(mtry in 1:13){
+  rf=randomForest(y ~ . , data = train,mtry=mtry,ntree=50,maxnodes = 20, importante=True) 
+  oob.err[mtry] = rf$mse[20] 
+  # Predicciones de la base de datos test por cada arbol
+  pred<-predict(rf,newdata=test) 
+  # Mean Squared Test Error
+  test.err[mtry]= mean( (test$y - pred)^2)
+  cat(mtry," ")}
+
+matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("darkgreen","darkblue"),type="b",ylab="Mean Squared Error",xlab="Numero de predictores en cada paso")
+legend("topright",cex = 0.5,legend=c("Out of Bag Error","Test Error"),pch=19, col=c("darkgreen","darkblue"))
+
+cbind(1:13,oob.err,test.err)
+
+# importancia de las variables
+varImpPlot(rf)
+
+
+rf=randomForest(y ~ marital.status+education.num+flag_gain+hours.per.week, data = train,mtry=mtry,ntree=50,maxnodes = 20, importante=True) 
+
+plot(rf)

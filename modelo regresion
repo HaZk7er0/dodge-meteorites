@@ -1,0 +1,32 @@
+#Clase: Identificación de un modelo de regresión lineal
+
+
+CP: Uno se debe acerpar a la cantidad de las variables k+1 (el numero de variables de la regresión+1)
+
+Medir el error cuadratico
+	E{(Sesgo+Varianza) al cuadrado}
+
+AIC: 
+BIC: Entra mas información, este nos eligira el modelo correcto
+
+
+Correlación: 
+
+Incluir las variables:
+
+#########################################################################
+#Regla de oro en todo lo que sigue: verificar la colinealidad con el VIF#
+#########################################################################
+#Muy importante!!!
+
+
+FORWARD: Prueba las variables y las agrega
+BACKWARD: Prueba todas las variables y las va sacando 
+STEPWISE: Junta los dos modelos
+			Cuidado de elegir "nivel del paso forward"≤"nivel del paso bakward" para evitar bucles infinitas... !
+
+Se selecciona el F mas grande o el P-valores mas bajo para seleccionar la variable
+
+
+
+

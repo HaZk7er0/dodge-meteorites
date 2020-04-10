@@ -1,0 +1,15 @@
+melones=read.table("datos melones.txt",header=T)
+summary(melones)
+x=melones$Diametro
+stem(x)
+par(mfrow=c(1,2))
+hist(x)
+boxplot(x)
+#Para mostrar los valores en el boxplot se digita abline(h=c(10.20,12.65,14.95,17.70,22.30),lty=3)
+var(x)
+sd(x)
+quantile(x,seq(0.1,0.9,by=0.1))
+#Instalar Paquete e1071
+library(e1071) 
+skewness(x) 
+kurtosis(x)

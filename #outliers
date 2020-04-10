@@ -1,0 +1,82 @@
+#outliers
+#####################
+#Estudio de outliers#
+#####################
+mtcars <- read.table("C:/Users/Familia/Desktop/R/Clase 5/mtcars.txt",header = TRUE, sep = "", na.strings = "NA", dec = ".", strip.white = TRUE, row.names = "NOMBRE")
+
+
+plot(mtcars$wt,mtcars$mpg)
+#Hay 3 autos que parecen tener un consumo demasiado bajo por su peso (son 3 autos con wt>5, o sea Cadillac, Lincoln y Chrysler). Recién Wolkswagen falsificó datos de sus autos:https://es.wikipedia.org/wiki/Esc%C3%A1ndalo_de_emisiones_contaminantes_de_veh%C3%ADculos_Volkswagen
+
+#===>Lo que sigue puede ser un estudio preliminar a la detección de fraude?
+
+fit<-lm(mpg ~ wt,data=mtcars)#Empezamos con una regresión
+
+#######################
+#Detección de outliers#
+#######################
+#Respecto a los individuos
+library(car)
+hatvalues(fit)
+plot(hatvalues(fit), main="hat valores")
+abline(h=4/length(mtcars$wt), lty=2)#Detección de outliers al respecto del regresor
+
+#Respecto a la variable explicada
+outlierTest(lm(mtcars$mpg ~ mtcars$wt))
+#Residuos studentizados externos, correción 
+#Bonferroni por multiple pruebas..
+
+
+##############################################################
+#Evaluación de la influencia los outliers sobre la estimación#
+##############################################################
+
+#Primero, sobre la estimación
+cooks.distance(fit) #global
+plot(cooks.distance(fit))#Cook distance
+abline(h=4/(length(mtcars$wt)-2), lty=2)
+
+dfbeta.fit<-dfbetas(fit)#dfbetas   por cada parametro
+plot(dfbeta.fit)
+abline(h=2/sqrt(length(mtcars$wt)), lty=2)
+abline(v=2/sqrt(length(mtcars$wt)), lty=2)
+
+#Segundo, sobre la predicción
+dffits(fit)#dffits
+plot(dffits(fit))
+abline(h=2*sqrt(2)/sqrt(length(mtcars$wt)), lty=2)
+
+
+#############################
+#Tercero, sobre la precisión#
+#############################
+
+covratio(fit)
+graf.cov<-abs(covratio(fit)-1)
+plot(graf.cov)
+abline(h=3*2/length(mtcars$wt), lty=2)
+
+###################
+#Evaluación global#
+###################
+#install.packages("qpcR")
+library(qpcR)
+PRESS(fit)#El P.square es SSE/SST pero calculado con residuos sacando la oservación "i" 
+aov(fit)#Analisis of variance para leer el SSE
+
+####################
+#Estimación robusta#
+####################
+#install.packages("mblm")
+library(mblm)
+lin2<- mblm(mpg ~ wt, repeated = TRUE,data=mtcars)
+summary(lin2)
+plot(mtcars$wt,mtcars$mpg)
+abline(lin2)
+#Regresion robusta de Siegel
+
+lin3<- mblm(mpg ~ wt, repeated = FALSE,data=mtcars)
+summary(lin3)
+plot(mtcars$wt,mtcars$mpg)
+abline(lin3)
+#Regresion robusta de Theil-Sen

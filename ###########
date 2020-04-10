@@ -1,0 +1,95 @@
+###########
+# Titanic #
+###########
+# install.packages("rpart.plot")
+# install.packages("rpart")
+library("rpart")
+library("rpart.plot")
+# ejemplo de árboles de clasificación
+setwd("C:/Users/Familia/Desktop/R/Clase12")
+titanic_df<-read.csv("titanic_datasets",header=T,sep="|",dec=",")
+# Verificamos los nombres del dataframe
+colnames(titanic_df)
+names(titanic_df)
+#Eliminar variables que no nos sirven para el analisis como tickets y nombres. 
+#Ya que para los arboles solo deben estar las variables que ocuparemos y sirven
+titanic_df<-titanic_df[,-c(8)]
+titanic_df<-titanic_df[,-c(3)]
+
+# Transformamos la variable respuesta en "si" o "no" sobrevive el pasajero
+titanic_df$survived<-ifelse(titanic_df$survived==1,"si","no")
+# pasamos la variable a factor
+titanic_df$survived<-as.factor(titanic_df$survived)
+# dimensión del dataframe (filas)
+dim_titanic<-dim(titanic_df)[1]
+dim(titanic_df)
+
+library("ggplot2")
+# análisis exploratorio de variables categóricas
+ggplot(data=titanic_df[1:dim_titanic,],aes(x=sex,fill=survived))+geom_bar()
+ggplot(data = titanic_df[1:dim_titanic,],aes(x=embarked,fill=survived))+geom_bar(position="fill")+ylab("Frequency")
+ggplot(data = titanic_df[1:dim_titanic,],aes(x=pclass,fill=survived))+geom_bar(position="fill")+ylab("Frequency")
+
+
+# seleccionamos las variables que utilizaremos
+train_im<- titanic_df[1:dim_titanic,c("survived","pclass","sex","age","fare","sibsp","parch")]
+
+
+# obtenemos la data de entrenamiento y la data de test
+#el [1] significa que empiez aen el valor 1
+ind<-sample(1:dim(train_im)[1],round(dim_titanic*0.75))
+train<-train_im[ind,]
+test<-train_im[-ind,]
+# construimos el árbol, cp es el desglose maximo que puede llegar a tener el arbol
+model<- rpart(survived ~.,data=train, method="class",control =rpart.control(cp = 0.0001))
+summary(model)
+
+# gráficamos el modelo
+rpart.plot(model)
+
+# encontramos el hiperparámetro alpha óptimo
+cp.opt <- model$cptable[which.min(model$cptable[,"xerror"]),"CP"]
+cp.opt
+# podamos el árbol acorde al alpha óptimo
+arbol.podado <- prune(model, cp = cp.opt)
+
+#el verde es el camino que cumple y el rojo el que no
+prp(arbol.podado, faclen = 0, cex = 0.8, extra = 1,col=2:3)
+
+#library(caret)
+#pred_test<- predict(model, newdata= test,type="class")
+#matrix_confusion<- table(test$survived,pred_test)
+
+# graficamos el árbol
+rpart.plot(model)
+
+# install.packages("tree")
+library("tree")
+library("ggplot2")
+library("ggpubr")
+arbol_clasificacion <- tree(formula = survived~. ,data = train)
+summary(arbol_clasificacion)
+
+plot(x = arbol_clasificacion, type = "proportional")
+text(x = arbol_clasificacion, splits = TRUE, pretty = 0,
+     cex = 0.8, col = "firebrick")
+# validación cruzada
+cv_arbol <- cv.tree(arbol_clasificacion, K = 10)
+cv_arbol
+# verificamos los resultados de la validación
+resultados_cv <- data.frame(n_nodos = cv_arbol$size, clas_error = cv_arbol$dev,
+                            alpha = cv_arbol$k)
+# graficamos el error de clasificación según los nodos
+p1 <- ggplot(data = resultados_cv, aes(x = n_nodos, y = clas_error)) +
+  geom_line() + 
+  geom_point() +
+  labs(title = " Error de clasificación vs \n tamaño del árbol") + theme_bw() 
+
+# graficamos el hiperparámetro alpha
+p2 <- ggplot(data = resultados_cv, aes(x = alpha, y = clas_error)) +
+  geom_line() + 
+  geom_point() +
+  labs(title = " Error de clasificación vs \n hiperparámetro alpha") + theme_bw() 
+ggarrange(p1, p2)
+
+#a medida que aumenta el alpha, aumenta el error.

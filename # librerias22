@@ -1,0 +1,128 @@
+# librerias
+library(e1071)
+library(ggplot2)
+# seteamos una semilla para que la generación de números aleatorios no cambie
+set.seed(68)
+# generamos datos normales aleatorios
+X1 <- rnorm(n = 10, mean = 2, sd = 1)
+X2 <- rnorm(n = 10, mean = 2, sd = 1)
+# transformamos a dataframe las observaciones generadas
+obs <- data.frame(X1 = c(X1, X1 + 2), X2 = c(X2, X2 + 2) ,
+                  clase = rep(c(1, -1), each = 10))
+obs$clase <- as.factor(obs$clase)
+# grafica de puntos y posibles rectas de hiperplano
+ggplot() +
+  geom_point(data = obs, aes(x = X1, y = X2, color = clase), size = 4) +
+  geom_abline(intercept = 9, slope = -2) +
+  geom_abline(intercept = 8.5, slope = -1.7) +
+  geom_abline(intercept = 8, slope = -1.5) +
+  geom_abline(intercept = 6.5, slope = -1) +
+  geom_abline(intercept = 5.4, slope = -0.75) +
+  theme_bw() +
+  labs(title = "5 Posibles hiperplanos de separación") +
+  theme( legend.position = "none",
+         plot.title = element_text(hjust = 0.5, size = 11))
+
+
+# Casos de cuasi separación lineal 
+# en este caso tenemos que definir una recta que permita una cierta cantidad de errores
+set.seed(1234)
+coordenadas <- matrix(rnorm(40), 20, 2)
+colnames(coordenadas) <- c("X1","X2")
+y <- c(rep(-1,10), rep(1,10))
+y <- as.factor(y)
+coordenadas[y == 1, ] <- coordenadas[y == 1, ] + 1
+
+datos <- data.frame(coordenadas, y)
+ggplot(data = datos, aes(x = X1, y = X2, color = as.factor(y))) +
+  geom_point(size = 4) +
+  theme_bw() +
+  labs(title = "Clases no separables linealmente") +
+  theme( legend.position = "none",
+         plot.title = element_text(hjust = 0.5, size = 11))
+
+# Se convierte la variable respuesta a factor
+datos$y <- as.factor(datos$y)
+
+# se tiene que indicar que la función kernel es lineal.
+modelo_svm <- svm(formula = y ~ X1 + X2, data = datos, kernel = "linear",
+                  cost = 10, scale = FALSE)
+
+summary(modelo_svm)
+# observaciones que funcionan como vector soporte
+modelo_svm$index
+# graficamos el hiperplano
+plot(modelo_svm, datos)
+
+# Rango de los predictores
+rango_X1 <- range(datos$X1)
+rango_X2 <- range(datos$X2)
+
+# Interpolación de puntos
+new_x1 <- seq(from = rango_X1[1], to = rango_X1[2], length = 75)
+new_x2 <- seq(from = rango_X2[1], to = rango_X2[2], length = 75)
+nuevos_puntos <- expand.grid(X1 = new_x1, X2 = new_x2)
+
+# Predicción según el modelo
+predicciones <- predict(object = modelo_svm, newdata = nuevos_puntos)
+
+# Se almacenan los puntos predichos para dar color a las regiones
+color_regiones <- data.frame(nuevos_puntos, y = predicciones)
+
+# Para extraer la ecuación del hiperplano y del margen es necesario aplicar 
+# algebra lineal.
+beta <- drop(t(modelo_svm$coefs) %*% as.matrix(datos[,c("X1","X2")])[modelo_svm$index,])
+beta0 <- modelo_svm$rho
+
+ggplot() +
+  # Representación de las 2 regiones empleando los puntos y coloreándolos
+  # según la clase predicha por el modelo
+  geom_point(data = color_regiones, aes(x = X1, y = X2, color = as.factor(y)),
+             size = 0.5) +
+  # Se añaden las observaciones
+  geom_point(data = datos, aes(x = X1, y = X2, color = as.factor(y)),
+             size = 6) +
+  # Se identifican aquellas observaciones que son vectores soporte del modelo
+  geom_point(data = datos[modelo_svm$index, ],
+             aes(x = X1, y = X2, color = as.factor(y)),
+             shape = 21, colour = "black",
+             size = 6) +
+  # Se añaden las rectas del hiperplano y los márgenes
+  geom_abline(intercept = beta0/beta[2], slope = -beta[1]/beta[2]) +
+  geom_abline(intercept = (beta0 - 1)/beta[2], slope = -beta[1]/beta[2],
+              linetype = "dashed") +    
+  geom_abline(intercept = (beta0 + 1)/beta[2], slope = -beta[1]/beta[2],
+              linetype = "dashed") +
+  points(datos[modelo_svm$index,], pch = 5, cex = 2)+
+  theme_bw() +
+  theme(legend.position = "none")
+
+# la función tune() nos permite encontrar el valor óptimo de penalización
+set.seed(1)
+svm_cv <- tune("svm", y ~ X1 + X2, data = datos,
+               kernel = 'linear',
+               ranges = list(cost = c(0.001, 0.01, 0.1, 1, 5, 10, 20, 50, 100,
+                                      150, 200)))
+summary(svm_cv)
+
+ggplot(data = svm_cv$performances, aes(x = cost, y = error)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Error de clasificación vs hiperparámetro C") +
+  theme_bw()
+
+mejor_modelo <- svm_cv$best.model
+
+# Datos de test simulados
+set.seed(19)
+coordenadas <- matrix(rnorm(40), 20, 2)
+colnames(coordenadas) <- c("X1","X2")
+y <- sample(c(-1,1), 20, rep = TRUE)
+coordenadas[y == 1, ] <- coordenadas[y == 1, ] + 1
+test <- data.frame(coordenadas, y)
+
+# Predicciones
+predicciones <- predict(object = mejor_modelo, test)
+paste("Error de test:", 100*mean(test$y != predicciones),"%")
+
+table(prediccion = predicciones, valor_real = test$y)

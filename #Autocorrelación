@@ -1,0 +1,28 @@
+#Autocorrelación
+ dwtest(fit)
+
+	Durbin-Watson test
+
+data:  fit
+DW = 0.81961, p-value = 1.281e-09
+alternative hypothesis: true autocorrelation is greater than 0
+
+#p muy chica, nos indica que se debe rechazar H0 por lo tanto existe Autocorrelación
+
+#H0 No autocorrelación
+
+#H1 Autocorrelacion
+
+
+Modelo Lineal con errores AR(1)
+
+Estimación MCG
+std.error = 0.05, menor al modelo clasico
+
+#se deben ir probando modelos AR(1...n)
+
+AR(1)
+      AIC      BIC    logLik
+  284.5517 294.8915 -138.2758
+
+  Maximizar el Loglik y minimizar el AIC y BIC
